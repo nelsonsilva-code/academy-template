@@ -1,0 +1,37 @@
+name: BlackDuck Detect
+on:
+  push:
+    branches:
+      - master
+      - main
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'oracle'
+          java-version: '17'
+
+      - name: Setup Kotlin
+        uses: fwilhe2/setup-kotlin@main
+
+      - name: Set up Node.js environment
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+          npm: 9.8.1
+          registry-url: https://registry.npmjs.org
+
+      - name: Run Detect
+        env:
+          SERVER_URL: ${{ secrets.BLACKDUCK_SERVER_URL }}
+          TOKEN: ${{ secrets.BLACKDUCK_TOKEN }}
+          NPM_TOKEN_SDC: ${{ secrets.NPM_TOKEN_SDC }}
+        run: |
+          git config --global url.https://$NPM_TOKEN_SDC@github.com/.insteadOf https://github.com/
+          bash <(curl -s -L https://detect.synopsys.com/detect9.sh) --blackduck.url=$SERVER_URL --blackduck.api.token=$TOKEN --blackduck.trust.cert=true --detect.source.path=. --detect.docker.path=./dockerfiles --detect.detector.search.depth=15 --detect.accuracy.required=NONE  

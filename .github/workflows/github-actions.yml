@@ -1,0 +1,49 @@
+name: SonarQube Scan
+
+#Change the main branch, if necessary.
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  sonarqube_scan:
+    name: Run SonarQube Scan
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Set up JDK 11
+        uses: actions/setup-java@v2
+        with:
+          java-version: '17'
+          distribution: 'adopt'
+
+      - name: Build
+        run: ./gradlew build
+
+      - name: Install SonarScanner
+        run: |
+          wget https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-5.0.1.3006.zip
+          unzip sonar-scanner-cli-5.0.1.3006.zip
+          echo "$(pwd)/sonar-scanner-5.0.1.3006/bin" >> $GITHUB_PATH
+
+      - name: Run SonarScanner
+        env:
+          #YOU SHOULD CREATE A ENV VARIABLE IN THE PROJECT WITH SONAR_TOKEN NAME (eg: https://github.com/pre-delivery-enrolment/pde-template/settings/secrets/actions)
+          #THE VALUE IS 1PASSWORD (Sonar API Key)
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        #Change WEPREENROL:pde-template for each project do you want to configure
+        run: sonar-scanner -Dsonar.projectKey=WEPREENROL:pde-template -Dsonar.host.url=https://devstack.vwgroup.com/sonar -Dsonar.login=$SONAR_TOKEN
+
+      #"Check Quality Gate" will be not used for now, but keep it, it will be useful for breaking the commit, just uncommenting the last line
+      - name: Check Quality Gate
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          sleep 5s
+          response=$(curl -u $SONAR_TOKEN: "https://devstack.vwgroup.com/sonar/api/qualitygates/project_status?projectKey=WEPREENROL:pde-template&pullRequest=$PR_NUMBER")
+          echo $response
+#          if echo $response | grep -q '"status":"ERROR"'; then exit 1; fi
