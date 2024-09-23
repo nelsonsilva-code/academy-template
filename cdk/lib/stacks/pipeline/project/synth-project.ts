@@ -15,7 +15,8 @@ interface SynthProjectProps {
   vpc: IVpc
   proxy: CfnProxy
   proxyCredentials: CfnProxyCredentials,
-  gitTokenSecret: ISecret
+  gitTokenSecret: ISecret,
+  noProxySuffixes?: string
 }
 
 export class SynthProject extends PipelineProject {
@@ -35,7 +36,7 @@ export class SynthProject extends PipelineProject {
           value: props.proxy.dnsName,
         },
         NO_PROXY: {
-          value: 'amazonaws.com,ecr.aws',
+          value: props.noProxySuffixes ? props.noProxySuffixes+',amazonaws.com,ecr.aws' : 'amazonaws.com,ecr.aws',
         },
         GITHUB_TOKEN: {
           value: `${props.gitTokenSecret.secretArn}:githubToken`,
@@ -61,7 +62,7 @@ export class SynthProject extends PipelineProject {
               'npm config set @vw-sre:registry https://vw-sre-565220512126.d.codeartifact.eu-west-1.amazonaws.com/npm/vw-sre/',
               'npm config set //vw-sre-565220512126.d.codeartifact.eu-west-1.amazonaws.com/npm/vw-sre/:_authToken ${CODEARTIFACT_AUTH_TOKEN}',
               'echo "//npm.pkg.github.com/:_authToken=${GITHUB_TOKEN}" > cdk/.npmrc',
-              'echo "@pre-delivery-enrolment:registry=https://npm.pkg.github.com/pre-delivery-enrolment" >> cdk/.npmrc',
+              'echo "@nelsonsilva-code:registry=https://npm.pkg.github.com/nelsonsilva-code" >> cdk/.npmrc',
               'echo "legacy-peer-deps=true" >> cdk/.npmrc',
               // Install cdk modules
               'cd cdk',

@@ -8,18 +8,19 @@ import {
 } from 'aws-cdk-lib/aws-codebuild';
 import { Effect, PolicyStatement } from 'aws-cdk-lib/aws-iam';
 import { Construct } from 'constructs';
-import {Microservice} from "../../../interfaces/microservice-interface";
 import {IRepository} from "aws-cdk-lib/aws-ecr";
 import {IVpc} from 'aws-cdk-lib/aws-ec2';
 import { CfnProxy, CfnProxyCredentials } from '@vw-sre/vws-cdk';
 import {ISecret} from "aws-cdk-lib/aws-secretsmanager";
+import {Microservice} from "@nelsonsilva-code/cdk-commons";
 
 interface BuildProjectProps {
   vpc: IVpc
   env?: Environment,
   proxy:CfnProxy,
   proxyCredentials: CfnProxyCredentials,
-  gitTokenSecret: ISecret
+  gitTokenSecret: ISecret,
+  noProxySuffixes?: string,
 }
 
 export class BuildProject extends PipelineProject {
@@ -40,7 +41,7 @@ export class BuildProject extends PipelineProject {
           value: props.proxy.dnsName,
         },
         NO_PROXY: {
-          value: 'amazonaws.com,ecr.aws',
+          value: props.noProxySuffixes ? props.noProxySuffixes+',amazonaws.com,ecr.aws' : 'amazonaws.com,ecr.aws',
         },
         PROXY_PORT: {
           value: '8080'
@@ -52,7 +53,7 @@ export class BuildProject extends PipelineProject {
         GITHUB_TOKEN: {
           value: `${props.gitTokenSecret.secretName}:githubToken`,
           type: BuildEnvironmentVariableType.SECRETS_MANAGER,
-        }
+        },
       },
       environment: {
         buildImage: LinuxBuildImage.STANDARD_7_0,
@@ -63,16 +64,16 @@ export class BuildProject extends PipelineProject {
         phases: {
           install:{
             commands: [
-            "export HTTPS_PROXY=http://${PROXY_USER}:${PROXY_PASSWORD}@${PROXY_URL}:${PROXY_PORT}",
-            "export https_proxy=${HTTPS_PROXY}",
-            "export HTTP_PROXY=${HTTPS_PROXY}",
-            "export http_proxy=${HTTPS_PROXY}",
-            'export PROXY_URL=${PROXY_URL}',
-            'export PROXY_PORT=${PROXY_PORT}',
-            'export PROXY_USER=${PROXY_USER}',
-            'export PROXY_PASSWORD=${PROXY_PASSWORD}',
-            'export NO_PROXY=${NO_PROXY}',
-            'npm install -g npm@9.8.1',
+              "export HTTPS_PROXY=http://${PROXY_USER}:${PROXY_PASSWORD}@${PROXY_URL}:${PROXY_PORT}",
+              "export https_proxy=${HTTPS_PROXY}",
+              "export HTTP_PROXY=${HTTPS_PROXY}",
+              "export http_proxy=${HTTPS_PROXY}",
+              'export PROXY_URL=${PROXY_URL}',
+              'export PROXY_PORT=${PROXY_PORT}',
+              'export PROXY_USER=${PROXY_USER}',
+              'export PROXY_PASSWORD=${PROXY_PASSWORD}',
+              'export NO_PROXY=${NO_PROXY}',
+              'npm install -g npm@9.8.1'
             ],
             "runtime-versions": {
               java: "corretto17"
@@ -87,18 +88,6 @@ export class BuildProject extends PipelineProject {
           build: {
             commands: [
               //'./gradlew test',
-              './gradlew \
-              -Dhttps.proxyHost=$PROXY_URL \
-              -Dhttps.proxyPort=$PROXY_PORT \
-              -Dhttps.proxyUser=$PROXY_USER \
-              -Dhttps.proxyPassword=$PROXY_PASSWORD \
-              -Dhttp.proxyHost=$PROXY_URL \
-              -Dhttp.proxyPort=$PROXY_PORT \
-              -Dhttp.proxyUser=$PROXY_USER \
-              -Dhttp.proxyPassword=$PROXY_PASSWORD \
-              -Dhttp.nonProxyHosts=$NO_PROXY \
-              -Djdk.http.auth.tunneling.disabledSchemes="" \
-              build',
               `docker build -t ${microservice.name.toLowerCase()}:$TAG . `,
               `docker tag ${microservice.name.toLowerCase()}:$TAG ${ecrRepo.repositoryUri}:$TAG`,
               `docker tag ${microservice.name.toLowerCase()}:$TAG ${ecrRepo.repositoryUri}`,

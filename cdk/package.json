@@ -22,16 +22,16 @@
     "eslint-plugin-import": "^2.23.4",
     "eslint-plugin-jest": "^26.5.3",
     "jest": "^28.1.1",
-    "ts-node": "^10.8.1",
+    "ts-node": "10.9.2",
     "typescript": "^4.7.4",
-    "@pre-delivery-enrolment/cdk-commons": "0.1.60"
+    "@nelsonsilva-code/cdk-commons": "1.0.0"
   },
   "dependencies": {
     "@vw-sre/vws-cdk": "^2.8.1",
-    "aws-cdk": "^2.131.0",
-    "aws-cdk-lib": "^2.131.0",
+    "aws-cdk": "^2.157.0",
+    "aws-cdk-lib": "2.157.0",
     "cdk-assets": "^2.131.0",
-    "constructs": "^10.2.44",
+    "constructs": "10.3.0",
     "source-map-support": "^0.5.16"
   }
 }

@@ -126,10 +126,8 @@ cd ..
 print_hacker
 printf "👷️${green}Deploying environment 👷  \n️ ${reset}"
 
-for stack in $(cdk ls); do
+for stack in $(npx aws-cdk ls); do
   deploy_stack $stack
 done
 
 echo "✅  ${green}Deployment finished! ✅ "
-
-pwd

@@ -2,3 +2,5 @@
 .cdk.staging
 /cdk/cdk.out/
 manifest.json
+package-lock.json
+package-lock.json
