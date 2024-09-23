@@ -19,7 +19,7 @@ const currentEnv = {
 }
 
 const microservice = {
-    name: "NelsonSilva", //TODO: Change me
+    name: "JosePinhal", //TODO: Change me
     gitRepo: 'academy-template',
     gitOwner: 'nelsonsilva-code', //TODO: Change me
 } as Microservice
